@@ -263,11 +263,11 @@ def payment_callback(request):
         if response_data['status'] == 'success':
             transaction = Transaction.objects.get(ref=tx_ref)
 
-            # Confirm the transaction details
+           
             if (response_data['data']['status'] == "successful"
                     and float(response_data['data']['amount']) == float(transaction.amount)
                     and response_data['data']['currency'] == transaction.currency):
-                # Update transaction and cart status to paid
+              
                 transaction.status = 'completed'
                 transaction.save()
 
@@ -278,11 +278,11 @@ def payment_callback(request):
 
                 return Response({'message': 'Payment successful!', 'subMessage': 'You have successfully made payment'})
             else:
-                # Payment verification failed
+                
                 return Response({'message': 'Payment verification failed.', 'subMessage': 'Your payment verification failed'})
         else:
             return Response({'message': 'Failed to verify transaction with Flutterwave.', 'submessgae': 'We could not verify the transaction'})
-            # Payment was not successful
+            
     else:
         return Response({'message': 'Payment was not successful.'}, status=400)
     
@@ -305,11 +305,11 @@ def initiate_paymentstripe(request):
         tax = Decimal("5.00")  
         total_amount = amount + tax
 
-        # Stripe requires amounts in cents/smallest currency unit
-        stripe_amount = int(total_amount * 100)
-        currency = "usd"  # Stripe uses lowercase currency codes
         
-        # Store the transaction in your database
+        stripe_amount = int(total_amount * 100)
+        currency = "usd"  
+        
+        
         transaction = Transaction.objects.create(
             ref=payment_id,
             cart=cart,
@@ -319,7 +319,7 @@ def initiate_paymentstripe(request):
             status='pending'
         )
         
-        # Create Stripe checkout session
+        
         try:
             stripe.api_key = settings.STRIPE_SECRET_KEY
             
