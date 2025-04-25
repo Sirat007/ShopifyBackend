@@ -150,7 +150,7 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60)
 }
 
-FRONTEND_BASE_URL="http://localhost:3000/"
+FRONTEND_BASE_URL="https://shopifyfront.onrender.com/"
 
 FLUTTERWAVE_SECRET_KEY="FLWSECK_TEST-a2fdcc28cba7a98f5f64bb54d482f2a4-X"
 

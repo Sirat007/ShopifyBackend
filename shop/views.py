@@ -37,7 +37,7 @@ class CurrentUserCartCodeView(APIView):
 
     def get(self, request):
         try:
-            # cart = Cart.objects.get(cart_code=cart_code)
+            
             cart = Cart.objects.get(user=request.user.id, paid=False)
             serializer = CartCodeSerializer(cart)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -164,10 +164,6 @@ def user_info(request):
     user = request.user
     serializer = UserSerializer(user)
     return Response(serializer.data)
-
-
-
-
 
 
 @api_view(['POST'])
@@ -348,7 +344,7 @@ def initiate_paymentstripe(request):
             
             print(f"Stripe Session Created: {checkout_session.id}")
             
-            # Return the checkout session ID to the frontend
+            
             return Response({
                 'sessionId': checkout_session.id,
                 'url': checkout_session.url
