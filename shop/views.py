@@ -13,12 +13,13 @@ import requests
 from rest_framework.views import APIView
 import stripe
 from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
 
 
 BASE_URL = settings.FRONTEND_BASE_URL
 
 stripe.api_key=settings.STRIPE_SECRET_KEY
-# Create your views here.
+
 
 @api_view(["GET"])
 def products(request):
@@ -368,20 +369,20 @@ def payment_success(request):
         
         stripe.api_key = settings.STRIPE_SECRET_KEY
         
-        # Retrieve the checkout session to verify payment
+        
         checkout_session = stripe.checkout.Session.retrieve(session_id)
         
         if checkout_session.payment_status == 'paid':
-            # Get the transaction reference from the client_reference_id
+           
             payment_id = checkout_session.client_reference_id
             
             try:
-                # Update transaction status
+               
                 transaction = Transaction.objects.get(ref=payment_id)
                 transaction.status = 'completed'
                 transaction.save()
                 
-                # Update cart status
+                
                 cart = transaction.cart
                 cart.paid = True
                 cart.save()
@@ -421,7 +422,7 @@ def payment_canceled(request):
         'subMessage': 'Your payment process was canceled'
     }, status=status.HTTP_400_BAD_REQUEST)
 
-# Webhook handler for asynchronous payment events (optional but recommended)
+
 @api_view(['POST'])
 @csrf_exempt
 def stripe_webhook(request):
@@ -434,24 +435,24 @@ def stripe_webhook(request):
             payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
         )
         
-        # Handle the checkout.session.completed event
+       
         if event['type'] == 'checkout.session.completed':
             session = event['data']['object']
             
-            # Make sure it's a payment/checkout event
+            
             if session.payment_status == 'paid':
                 payment_id = session.client_reference_id
                 
-                # Update transaction status
+              
                 try:
                     transaction = Transaction.objects.get(ref=payment_id)
                     
-                    # Only update if not already completed (to prevent duplicates)
+                  
                     if transaction.status != 'completed':
                         transaction.status = 'completed'
                         transaction.save()
                         
-                        # Update cart status
+                   
                         cart = transaction.cart
                         cart.paid = True
                         cart.save()
@@ -462,12 +463,43 @@ def stripe_webhook(request):
         return Response({'status': 'success'}, status=status.HTTP_200_OK)
         
     except ValueError as e:
-        # Invalid payload
+       
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
     except stripe.error.SignatureVerificationError as e:
-        # Invalid signature
+        
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+@api_view(['GET'])
+def products_by_category(request, category_name):
+    category_name = category_name.capitalize()  
+    valid_categories = [cat[0] for cat in Product.CATEGORY]
+
+    if category_name not in valid_categories:
+        return Response({'error': 'Invalid category'}, status=status.HTTP_400_BAD_REQUEST)
+
+    products = Product.objects.filter(category=category_name)
+    serializer = ProductSerializer(products, many=True, context={'request': request})
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+def product_search_api(request):
+    query = request.GET.get("q", "")
+    results = []
+
+    if query:
+        products = Product.objects.filter(name__icontains=query)
+        results = [
+            {
+                "id": product.id,
+                "name": product.name,
+                "slug": product.slug,
+                "price": str(product.price),
+                "image": product.image.url if product.image else None,
+            }
+            for product in products
+        ]
+
+    return JsonResponse({"results": results})

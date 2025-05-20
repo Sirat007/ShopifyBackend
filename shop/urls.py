@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import CurrentUserCartCodeView,payment_callback
+from .views import CurrentUserCartCodeView,payment_callback,products_by_category,product_search_api
 from . import views
 
 urlpatterns = [
@@ -21,4 +21,6 @@ urlpatterns = [
     path('payments/success/', views.payment_success, name='payment_success'),
     path('payments/canceled/', views.payment_canceled, name='payment_canceled'),
     path('webhook/stripe/', views.stripe_webhook, name='stripe_webhook'),
+    path('products/category/<str:category_name>/', products_by_category, name='products-by-category'),
+    path("products/search/", product_search_api, name="product_search_api"),
 ]

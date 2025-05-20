@@ -6,7 +6,9 @@ class Product(models.Model):
     CATEGORY = (
         ("Electronics", "ELECTRONICS"),
         ("Groceries", "GROCERIES"),
-        ("Clothings", "CLOTHINGS")
+        ("Clothings", "CLOTHINGS"),
+        ("Phone","PHONE"),
+        
     )
     
 
